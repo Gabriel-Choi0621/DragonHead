@@ -181,7 +181,7 @@ dotnet run --project tests/DragonHead.Checks             # 판정 엔진 점검
 
 ## 명분 자동 등록 (DART)
 
-`settings.json`의 `DartApiKey`에 [OpenDART](https://opendart.fss.or.kr) 인증키(무료)를 넣으면, 감시 종목의 공시를 확인해 명분을 자동 등록합니다.
+**API 키 설정** 창(또는 `settings.json`의 `DartApiKey`)에 [OpenDART](https://opendart.fss.or.kr) 인증키(무료)를 넣으면, 감시 종목의 공시를 확인해 명분을 자동 등록합니다.
 
 | 공시 | 명분일 |
 |---|---|
@@ -238,7 +238,10 @@ dotnet run --project tests/DragonHead.Checks             # 판정 엔진 점검
 
 맨 위 **시장** 카드: 코스피 등락과 코스피 전체 외국인·기관·개인 순매수 금액, 시장 태그(코스피 강세장, 외국인 매수 주도, 개인이 물량 받는 중 등).
 
-## 용의 머리 판정 조건 (전부 충족해야 함)
+## 예전 규칙: 용의 머리 판정 조건 (백테스트 비교용)
+
+> 2026-10 백테스트 이후 실제 알림에는 쓰지 않습니다. 현재 규칙은 위의 [판정 규칙](#판정-규칙-2026-10-백테스트로-변경)을 보세요. 아래는 백테스트에서 비교 기준으로만 남아 있는 예전 조건입니다.
+
 
 1. **명분**: 오늘 날짜로 `Events`에 등록된 이벤트가 있다 (실적·주주환원·HBM 오피셜). 뉴스 판단은 사람이 합니다.
 2. **당일 상승**: 현재가 > 전일 종가
@@ -272,11 +275,10 @@ dotnet publish src/DragonHead.App -c Release -r win-x64 --self-contained false -
 
 ## 처음 설정
 
-1. 첫 실행 시 `%APPDATA%\DragonHead\settings.json`이 메모장으로 열립니다.
-2. 토스증권 WTS > 설정 > Open API에서 발급받은 `ClientId`, `ClientSecret`을 넣습니다.
-3. **같은 메뉴 하단 '허용 IP 관리'에 이 PC의 공인 IP를 등록**합니다. 안 하면 403으로 막힙니다. 회사 PC는 외부로 나가는 IP가 회사 공용 IP일 수 있으니, 실행 후 403이 뜨면 이것부터 확인하세요.
-4. `Events`의 실적 발표일을 확인·수정합니다.
-5. 저장하고 다시 실행합니다. `ClientSecret`은 첫 실행 때 Windows DPAPI로 암호화되어 `ProtectedSecret`으로 옮겨지고 평문 칸은 비워집니다 (같은 Windows 계정에서만 복호화 가능).
+1. 첫 실행 시 **API 키 설정** 창이 뜹니다. 토스증권 WTS > 설정 > Open API에서 발급받은 Client ID·Secret과, DART 인증키(선택)를 넣습니다.
+2. **같은 메뉴 하단 '허용 IP 관리'에 이 PC의 공인 IP를 등록**합니다. 안 하면 403으로 막힙니다. 회사 PC는 외부로 나가는 IP가 회사 공용 IP일 수 있으니, 403이 뜨면 이것부터 확인하세요.
+3. **연결 확인**으로 시험한 뒤 **저장**합니다. Secret은 Windows DPAPI로 암호화되어 `%APPDATA%\DragonHead\settings.json`에 저장됩니다 (같은 Windows 계정에서만 복호화 가능).
+4. 명분일(실적 발표일 등)은 DART 인증키를 넣으면 자동 등록됩니다. 키가 없으면 `settings.json`의 `Events`에 직접 넣으세요.
 
 설정을 바꾼 뒤에는 트레이 메뉴 '종료' 후 다시 실행해야 반영됩니다.
 
@@ -285,14 +287,14 @@ dotnet publish src/DragonHead.App -c Release -r win-x64 --self-contained false -
 - **외국인·기관 수치는 주식 수 기준 장중 잠정치**입니다. 토스는 종목별 거래대금을 주지 않아서, 화면의 '억' 금액은 `순매수 주식 수 × 현재가` 근사치입니다. 확정치는 당일 저녁에 반영됩니다.
 - **금융투자(기관 단타) 세부는 장중에 제공되지 않습니다.** 그래서 장중 '가짜 급등'은 "외국인이 안 사는데 오른다"로 판정합니다. 저녁 확정 후에는 상황판에서 기관 수치를 볼 수 있습니다.
 - `foreigner`는 등록외국인 기준입니다.
-- **판정 기준 자체는 검증되지 않은 휴리스틱**입니다. 과거 실적 발표일 데이터로 이 규칙이 단순 분할매수보다 나았는지 백테스트해 보는 걸 권합니다.
+- **판정 규칙은 과거 데이터 백테스트(삼성·하이닉스 5년, 명분일 51일)로 정했지만, 표본이 작습니다.** 앞으로도 같은 결과가 나온다는 보장은 없으니 참고용으로 쓰세요.
 - 토큰은 client당 하나만 유효합니다. 같은 키를 다른 프로그램에서 쓰면 서로 토큰을 무효화하며, 앱은 401을 받으면 한 번 재발급합니다.
 
 ## 구조
 
 ```
-src/DragonHead.Core     토스 API 클라이언트(조회 전용), 판정 엔진, 설정 모델  — net8.0, 외부 패키지 없음
-src/DragonHead.App      트레이 아이콘, 토스트, 상황판                        — net8.0-windows WinForms
+src/DragonHead.Core     토스·DART API 클라이언트(조회 전용), 판정 엔진, 분할 매수, 백테스터, 설정 모델  — net8.0, 외부 패키지 없음
+src/DragonHead.App      트레이 아이콘, 토스트, 상황판·차트·시장 창, API 키 설정 창              — net8.0-windows WinForms
 tests/DragonHead.Checks 판정 엔진 시나리오 점검 (dotnet run 으로 실행)
 ```
 
