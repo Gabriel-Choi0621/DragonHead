@@ -15,7 +15,7 @@ dotnet build-server shutdown | Out-Null
 
 Write-Host '2/3  빌드 (publish\DragonHead.exe)' -ForegroundColor Cyan
 dotnet publish src/DragonHead.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
-if ($LASTEXITCODE -ne 0) { Write-Host '빌드 실패. 위 오류를 Claude 에게 보내주세요.' -ForegroundColor Red; exit 1 }
+if ($LASTEXITCODE -ne 0) { Write-Host '빌드 실패. 위 오류 메시지를 확인하세요.' -ForegroundColor Red; exit 1 }
 
 Write-Host '3/3  실행' -ForegroundColor Cyan
 Start-Process -FilePath (Join-Path $PSScriptRoot 'publish\DragonHead.exe')

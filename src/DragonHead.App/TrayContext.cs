@@ -699,7 +699,7 @@ internal sealed class TrayContext : ApplicationContext
 
         var path = Path.Combine(SettingsStore.Folder, $"diag-{Kst.Now:yyyyMMdd-HHmmss}.txt");
         File.WriteAllText(path, sb.ToString());
-        Toast("진단 정보 저장됨", path + "\n이 파일을 Claude에게 보내주세요. 계좌·키 정보는 들어있지 않습니다.", Theme.Gray);
+        Toast("진단 정보 저장됨", path + "\n문제 확인용 진단 파일입니다. 계좌·키 정보는 들어있지 않습니다.", Theme.Gray);
         try { Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true }); }
         catch (Exception ex) { Log.Write("탐색기 열기 실패: " + ex.Message); }
     }
