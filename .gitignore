@@ -4,3 +4,10 @@ publish/
 .vs/
 *.user
 settings.json
+*.suo
+*.pdb
+TestResults/
+alerts.json
+journal.json
+window.json
+log.txt
